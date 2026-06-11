@@ -13,6 +13,9 @@ export interface BonusIdea {
   description: string;
   whyItHelps: string;
   estimatedValue: string;
+  deliveryFormat: 'PDF' | 'Video Course' | 'Templates' | 'Swipe File' | 'Prompt Pack' | 'Toolkit' | string;
+  conversionBenefit: string;
+  objectionSolved: string;
 }
 
 export interface BonusPage {

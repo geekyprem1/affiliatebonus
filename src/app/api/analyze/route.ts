@@ -109,16 +109,33 @@ function buildHtmlPage(analysis: any, bonuses: any[], bonusPage: any): string {
             <span class="absolute top-0 right-0 bg-violet-600/10 border-l border-b border-white/5 text-violet-400 text-xs font-bold px-3 py-1.5 rounded-bl-xl">
               Bonus #${idx + 1}
             </span>
-            <div class="flex flex-col gap-1.5">
-              <span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/20 self-start">
-                Value: ${bonus.estimatedValue || '$97'}
-              </span>
+            <div class="flex flex-col gap-2">
+              <div class="flex flex-wrap gap-1.5 items-center">
+                <span class="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  Value: ${bonus.estimatedValue || '$97'}
+                </span>
+                <span class="text-[10px] font-semibold text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded border border-violet-500/20">
+                  Format: ${bonus.deliveryFormat || 'Swipe File'}
+                </span>
+              </div>
               <h4 class="text-lg font-bold text-white pr-16">${bonus.name}</h4>
             </div>
             <p class="text-slate-300 text-sm leading-relaxed">${bonus.description}</p>
-            <div class="mt-auto bg-white/5 p-3.5 rounded-xl border border-white/5">
-              <span class="text-xs text-violet-400 font-bold block uppercase tracking-wider mb-1">How it helps you succeed:</span>
-              <p class="text-slate-300 text-xs italic leading-relaxed">&ldquo;${bonus.whyItHelps}&rdquo;</p>
+            <div class="mt-auto bg-white/5 p-3.5 rounded-xl border border-white/5 flex flex-col gap-2.5">
+              <div>
+                <span class="text-[10px] text-violet-400 font-bold block uppercase tracking-wider mb-0.5">How it helps you succeed:</span>
+                <p class="text-slate-300 text-xs leading-relaxed">${bonus.whyItHelps}</p>
+              </div>
+              <div class="border-t border-white/5 pt-2 flex flex-col gap-1">
+                <div>
+                  <span class="text-[10px] text-cyan-400 font-bold block uppercase tracking-wider">Objection Solved:</span>
+                  <p class="text-slate-300 text-xs italic leading-relaxed">${bonus.objectionSolved}</p>
+                </div>
+                <div class="border-t border-white/5 pt-1.5">
+                  <span class="text-[10px] text-emerald-400 font-bold block uppercase tracking-wider">Conversion Benefit:</span>
+                  <p class="text-slate-300 text-xs italic leading-relaxed">${bonus.conversionBenefit}</p>
+                </div>
+              </div>
             </div>
           </div>
         `).join('')}
@@ -162,6 +179,9 @@ function isValidApiResponse(json: any): json is ApiResponse {
   if (bonuses.length === 0) return false;
   for (const b of bonuses) {
     if (typeof b.name !== 'string' || typeof b.description !== 'string' || typeof b.whyItHelps !== 'string' || typeof b.estimatedValue !== 'string') {
+      return false;
+    }
+    if (typeof b.deliveryFormat !== 'string' || typeof b.conversionBenefit !== 'string' || typeof b.objectionSolved !== 'string') {
       return false;
     }
   }
@@ -274,7 +294,10 @@ JSON Schema:
       "name": "Bonus 1 Name",
       "description": "Detailed description of what the buyer receives",
       "whyItHelps": "Explains how this bonus directly plugs a gap in the main product, resolves an objection, or helps the buyer implement it twice as fast",
-      "estimatedValue": "$97"
+      "estimatedValue": "$97",
+      "deliveryFormat": "Must be one of: PDF, Video Course, Templates, Swipe File, Prompt Pack, Toolkit",
+      "conversionBenefit": "A clear, compelling explanation of how this bonus increases their sales conversion or speeds up results",
+      "objectionSolved": "The specific customer objection this bonus handles and eliminates (e.g. 'solves lack of technical skills concern')"
     }
   ],
   "bonusPage": {
