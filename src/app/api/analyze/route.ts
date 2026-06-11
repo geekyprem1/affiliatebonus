@@ -206,13 +206,33 @@ function isValidApiResponse(json: any): json is ApiResponse {
   return true;
 }
 
+// Helper function to strip HTML tags and extract clean copy
+function cleanHtml(html: string): string {
+  // Remove script, style, svg, noscript, nav, header, footer tags and their contents
+  let text = html.replace(/<(script|style|svg|noscript|iframe|header|footer|nav)[^>]*>[\s\S]*?<\/\1>/gi, "");
+  // Remove HTML comments
+  text = text.replace(/<!--[\s\S]*?-->/g, "");
+  // Remove all other HTML tags
+  text = text.replace(/<[^>]*>/g, " ");
+  // Normalize whitespace
+  text = text.replace(/\s+/g, " ").trim();
+  // Decode basic HTML entities
+  text = text.replace(/&amp;/g, "&")
+             .replace(/&lt;/g, "<")
+             .replace(/&gt;/g, ">")
+             .replace(/&quot;/g, '"')
+             .replace(/&#39;/g, "'")
+             .replace(/&nbsp;/g, " ");
+  return text;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { url, fallbackContent, openRouterKey, selectedModel } = await req.json();
 
     let contentToAnalyze = "";
 
-    // 1. Scrape with Jina Reader if URL is provided
+    // 1. Scrape with Jina Reader (with Direct Fetch Fallback)
     if (url && url.trim() !== "") {
       let targetUrl = url.trim();
       if (!/^https?:\/\//i.test(targetUrl)) {
@@ -221,22 +241,46 @@ export async function POST(req: NextRequest) {
       
       try {
         const jinaUrl = `https://r.jina.ai/${targetUrl}`;
+        console.log(`Scraping URL via Jina Reader: ${targetUrl}`);
         const response = await fetch(jinaUrl, {
           method: "GET",
           headers: {
             "Accept": "text/plain",
             "X-Return-Format": "markdown"
           },
-          signal: AbortSignal.timeout(12000) // 12-second timeout for Jina
+          signal: AbortSignal.timeout(8000) // 8-second timeout for Jina
         });
 
         if (response.ok) {
           contentToAnalyze = await response.text();
+          console.log(`Jina Reader successfully scraped the URL. Length: ${contentToAnalyze.length}`);
         } else {
-          console.warn(`Jina Reader failed with status: ${response.status}`);
+          console.warn(`Jina Reader returned status ${response.status}. Triggering direct fallback fetch...`);
+          throw new Error(`Jina responded with ${response.status}`);
         }
-      } catch (scrapeErr) {
-        console.error("Error scraping with Jina Reader:", scrapeErr);
+      } catch (scrapeErr: any) {
+        // Fallback to direct request from user environment
+        try {
+          console.log(`Jina Reader failed/timed out (${scrapeErr.message || scrapeErr}). Trying direct fetch fallback...`);
+          const response = await fetch(targetUrl, {
+            method: "GET",
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+            },
+            signal: AbortSignal.timeout(8500) // 8.5-second timeout for direct fallback
+          });
+
+          if (response.ok) {
+            const rawHtml = await response.text();
+            contentToAnalyze = cleanHtml(rawHtml);
+            console.log(`Direct fetch fallback successful! Raw HTML length: ${rawHtml.length}. Cleaned text length: ${contentToAnalyze.length}`);
+          } else {
+            console.warn(`Direct fetch fallback also failed with status: ${response.status}`);
+          }
+        } catch (directErr: any) {
+          console.error(`Direct fetch fallback aborted: ${directErr.message || directErr}`);
+        }
       }
     }
 
