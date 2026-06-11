@@ -930,7 +930,7 @@ export default function Home() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Code editor */}
-                  <div className="glass-panel rounded-2xl overflow-hidden h-[650px] flex flex-col border border-white/10 shadow-2xl">
+                  <div className="glass-panel rounded-2xl overflow-hidden h-[450px] sm:h-[550px] lg:h-[650px] flex flex-col border border-white/10 shadow-2xl">
                     <div className="bg-black/80 px-4 py-3 border-b border-white/5 flex items-center justify-between text-xs text-slate-400">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
@@ -971,7 +971,7 @@ export default function Home() {
                   </div>
 
                   {/* Iframe Visual Preview */}
-                  <div className="glass-panel rounded-2xl overflow-hidden h-[650px] flex flex-col border border-white/10 shadow-2xl">
+                  <div className="glass-panel rounded-2xl overflow-hidden h-[450px] sm:h-[550px] lg:h-[650px] flex flex-col border border-white/10 shadow-2xl">
                     <div className="bg-black/80 px-4 py-3 border-b border-white/5 flex items-center justify-between text-xs text-slate-400">
                       <span className="font-semibold text-slate-200">Visual Sales Page Preview</span>
                       <div className="flex items-center gap-1">
@@ -982,7 +982,7 @@ export default function Home() {
                     <iframe
                       srcDoc={applyAccentToHtml(result.bonusPage.htmlTemplate, pageAccent)}
                       className="flex-1 w-full bg-[#030014] border-none"
-                      sandbox="allow-scripts"
+                      sandbox="allow-scripts allow-same-origin"
                       title="Bonus Page Preview"
                     />
                   </div>
@@ -1089,7 +1089,7 @@ export default function Home() {
                                   Urgency: {email.urgencyScore || "8"}/10
                                 </span>
                               </div>
-                              <span className="font-bold text-sm text-white truncate max-w-lg mt-1">{customizedSubject}</span>
+                              <span className="font-bold text-sm text-white truncate w-full max-w-[200px] xs:max-w-[280px] sm:max-w-[450px] md:max-w-lg mt-1">{customizedSubject}</span>
                               {!isExpanded && (
                                 <span className="text-xs text-slate-500 truncate max-w-xl font-medium">{email.previewText}</span>
                               )}

@@ -74,29 +74,29 @@ function buildHtmlPage(analysis: any, bonuses: any[], bonusPage: any): string {
       <span class="text-xs font-bold uppercase tracking-widest text-violet-400 bg-violet-500/10 border border-violet-500/20 px-3.5 py-1.5 rounded-full self-center">
         Exclusive Special Offer
       </span>
-      <h1 class="text-4xl md:text-6xl font-black tracking-tight text-white leading-tight max-w-4xl mx-auto animate-fadeIn">
+      <h1 class="text-3xl sm:text-4xl md:text-6xl font-black tracking-tight text-white leading-tight max-w-4xl mx-auto animate-fadeIn">
         ${headline}
       </h1>
-      <p class="text-slate-400 text-lg md:text-xl max-w-3xl mx-auto font-medium">
+      <p class="text-slate-400 text-base md:text-xl max-w-3xl mx-auto font-medium">
         ${subheadline}
       </p>
     </header>
-
+ 
     <!-- Scarcity Box -->
-    <div class="bg-amber-950/20 border border-amber-500/20 rounded-2xl p-6 text-center shadow-lg shadow-amber-500/5 max-w-3xl mx-auto w-full">
-      <div class="flex items-center justify-center gap-2 mb-1">
-        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-        <p class="text-amber-400 font-bold text-xs uppercase tracking-wider">Limited Bonus Slots Remaining</p>
+    <div class="bg-amber-950/20 border border-amber-500/20 rounded-2xl p-5 md:p-6 text-center shadow-lg shadow-amber-500/5 max-w-3xl mx-auto w-full">
+      <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+        <span class="text-amber-400 font-bold text-xs uppercase tracking-wider">Limited Bonus Slots Remaining</span>
       </div>
-      <p class="text-white text-base font-semibold">${scarcitySection}</p>
+      <p class="text-white text-sm md:text-base font-semibold leading-relaxed">${scarcitySection}</p>
     </div>
-
+ 
     <!-- Intro Text -->
     <div class="glass-card rounded-2xl p-6 md:p-8 max-w-4xl mx-auto w-full">
       <h3 class="text-xl font-bold text-white mb-2">The Value Stack Details</h3>
       <p class="text-slate-300 leading-relaxed text-sm md:text-base">${bonusStackDescription}</p>
     </div>
-
+ 
     <!-- Bonuses Grid -->
     <div class="flex flex-col gap-6 w-full max-w-4xl mx-auto animate-fadeIn">
       <h2 class="text-2xl font-bold text-white border-b border-white/5 pb-3 flex items-center gap-2">
@@ -106,11 +106,11 @@ function buildHtmlPage(analysis: any, bonuses: any[], bonusPage: any): string {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         ${items.map((bonus, idx) => `
           <div class="glass-card rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden">
-            <span class="absolute top-0 right-0 bg-violet-600/10 border-l border-b border-white/5 text-violet-400 text-xs font-bold px-3 py-1.5 rounded-bl-xl">
-              Bonus #${idx + 1}
-            </span>
-            <div class="flex flex-col gap-2">
-              <div class="flex flex-wrap gap-1.5 items-center">
+            <div class="flex items-center justify-between gap-4 border-b border-white/5 pb-3">
+              <span class="text-[10px] text-violet-400 font-bold uppercase tracking-wider shrink-0">
+                Bonus #${idx + 1}
+              </span>
+              <div class="flex flex-wrap gap-1.5 items-center justify-end">
                 <span class="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                   Value: ${bonus.estimatedValue || '$97'}
                 </span>
@@ -118,7 +118,9 @@ function buildHtmlPage(analysis: any, bonuses: any[], bonusPage: any): string {
                   Format: ${bonus.deliveryFormat || 'Swipe File'}
                 </span>
               </div>
-              <h4 class="text-lg font-bold text-white pr-16">${bonus.name}</h4>
+            </div>
+            <div class="flex flex-col gap-2">
+              <h4 class="text-lg font-bold text-white leading-tight">${bonus.name}</h4>
             </div>
             <p class="text-slate-300 text-sm leading-relaxed">${bonus.description}</p>
             <div class="mt-auto bg-white/5 p-3.5 rounded-xl border border-white/5 flex flex-col gap-2.5">
