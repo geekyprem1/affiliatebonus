@@ -403,7 +403,7 @@ Generate the affiliate marketing suite JSON matching the specified schema. Make 
             response_format: { type: "json_object" },
             temperature: 0.3
           }),
-          signal: AbortSignal.timeout(60000) // 60-second timeout for LLM
+          signal: AbortSignal.timeout(120000) // 120-second timeout for LLM
         });
 
         if (!response.ok) {
@@ -447,7 +447,7 @@ Generate the affiliate marketing suite JSON matching the specified schema. Make 
           return NextResponse.json(
             { 
               error: isTimeout 
-                ? "OpenRouter API connection timed out. The request took longer than 60 seconds. Please try again or switch to Google Gemini 2.5 Flash."
+                ? "OpenRouter API connection timed out. The request took longer than 120 seconds. Please try again, switch to Google Gemini 2.5 Flash, or try the highly stable DeepSeek Chat model option."
                 : `AI generation failed after multiple attempts. Error: ${err.message}`, 
               rawResponse: apiResultText 
             },

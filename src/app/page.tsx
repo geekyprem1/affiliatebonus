@@ -263,7 +263,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-500 font-normal">
-                    {openRouterKey ? "API Key loaded" : "Using server key"} &bull; {selectedModel.includes("gemini") ? "Gemini 2.5 Flash" : "DeepSeek V4 Flash"}
+                    {openRouterKey ? "API Key loaded" : "Using server key"} &bull; {selectedModel.includes("gemini") ? "Gemini 2.5 Flash" : selectedModel.includes("v4-flash") ? "DeepSeek V4 Flash" : "DeepSeek Chat"}
                   </span>
                   {showSettings ? <ChevronUp className="w-4.5 h-4.5 text-slate-400" /> : <ChevronDown className="w-4.5 h-4.5 text-slate-400" />}
                 </div>
@@ -310,7 +310,8 @@ export default function Home() {
                       className="w-full px-3 py-2 rounded-lg glass-input text-xs text-white bg-black focus:outline-none"
                     >
                       <option value="google/gemini-2.5-flash">Google Gemini 2.5 Flash (Fast & Structured)</option>
-                      <option value="deepseek/deepseek-v4-flash">DeepSeek V4 Flash (High Performance)</option>
+                      <option value="deepseek/deepseek-chat">DeepSeek Chat V3/V4 (Highly Stable & Fast)</option>
+                      <option value="deepseek/deepseek-v4-flash">DeepSeek V4 Flash (Alternative)</option>
                     </select>
                     <span className="text-[10px] text-slate-500">
                       Choose between Gemini's fast structured output or DeepSeek.
