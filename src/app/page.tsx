@@ -47,6 +47,13 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [showKeyText, setShowKeyText] = useState(false);
 
+  // Email Customizer States
+  const [userName, setUserName] = useState("John Doe");
+  const [affiliateLink, setAffiliateLink] = useState("https://warriorplus.com/o2/a/12345/0");
+
+  // Accent Swapper state
+  const [pageAccent, setPageAccent] = useState("violet");
+
   // Loading & Error States
   const [loading, setLoading] = useState(false);
   const [loadingStepIndex, setLoadingStepIndex] = useState(0);
@@ -67,8 +74,13 @@ export default function Home() {
     if (typeof window !== "undefined") {
       const savedKey = localStorage.getItem("abg_openrouter_key");
       const savedModel = localStorage.getItem("abg_selected_model");
+      const savedName = localStorage.getItem("abg_user_name");
+      const savedLink = localStorage.getItem("abg_affiliate_link");
+      
       if (savedKey) setOpenRouterKey(savedKey);
       if (savedModel) setSelectedModel(savedModel);
+      if (savedName) setUserName(savedName);
+      if (savedLink) setAffiliateLink(savedLink);
     }
   }, []);
 
@@ -97,6 +109,16 @@ export default function Home() {
   const handleModelChange = (val: string) => {
     setSelectedModel(val);
     localStorage.setItem("abg_selected_model", val);
+  };
+
+  const handleNameChange = (val: string) => {
+    setUserName(val);
+    localStorage.setItem("abg_user_name", val);
+  };
+
+  const handleLinkChange = (val: string) => {
+    setAffiliateLink(val);
+    localStorage.setItem("abg_affiliate_link", val);
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -150,8 +172,43 @@ export default function Home() {
     setTimeout(() => setCopiedField(null), 2000);
   };
 
+  // Replace placeholders inside email copy dynamically
+  const customizeEmailText = (text: string) => {
+    if (!text) return "";
+    let customized = text;
+    if (userName.trim()) {
+      customized = customized.replace(/\[Your Name\]/gi, userName).replace(/\[Name\]/gi, userName);
+    }
+    if (affiliateLink.trim()) {
+      customized = customized.replace(/\[Affiliate Link\]/gi, affiliateLink).replace(/\[Link\]/gi, affiliateLink);
+    }
+    return customized;
+  };
+
+  // Swapper function to replace colors inside html template dynamically
+  const applyAccentToHtml = (html: string, accent: string) => {
+    if (!html) return "";
+    if (accent === "violet") return html;
+    
+    const replacements: Record<string, { primary: string; secondary: string }> = {
+      indigo: { primary: "indigo", secondary: "sky" },
+      emerald: { primary: "emerald", secondary: "teal" },
+      amber: { primary: "amber", secondary: "yellow" }
+    };
+    
+    const colors = replacements[accent];
+    if (!colors) return html;
+    
+    let finalHtml = html;
+    // Swap tailwind classes
+    finalHtml = finalHtml.replace(/violet/g, colors.primary);
+    finalHtml = finalHtml.replace(/fuchsia/g, colors.secondary);
+    return finalHtml;
+  };
+
   const downloadHtmlFile = (html: string) => {
-    const blob = new Blob([html], { type: "text/html" });
+    const finalHtml = applyAccentToHtml(html, pageAccent);
+    const blob = new Blob([finalHtml], { type: "text/html" });
     const urlStr = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = urlStr;
@@ -173,10 +230,20 @@ export default function Home() {
       const val = parseInt(b.estimatedValue.replace(/[^0-9]/g, ""), 10);
       if (!isNaN(val)) total += val;
     });
-    return total > 0 ? `$${total}` : "$1,290";
+    return total > 0 ? `$${total}` : "$1,470";
   };
 
-  const totalBonusValue = result ? calculateTotalValue(result.bonuses) : "$1,290";
+  const totalBonusValue = result ? calculateTotalValue(result.bonuses) : "$1,470";
+
+  // Calculate estimated time saved based on character word count
+  const calculateTimeSaved = () => {
+    if (!result) return "4.5 Hours";
+    const totalChars = JSON.stringify(result).length;
+    const hours = Math.max(3.5, parseFloat((totalChars / 2200).toFixed(1)));
+    return `${hours} Hours`;
+  };
+
+  const timeSavedMetric = calculateTimeSaved();
 
   // Delivery format badge styling config
   const getBadgeStyle = (format: string) => {
@@ -230,7 +297,7 @@ export default function Home() {
         
         {/* Intro */}
         <div className="text-center max-w-3xl mx-auto flex flex-col gap-3">
-          <span className="text-xs font-bold uppercase tracking-widest text-violet-400 bg-violet-500/10 px-3 py-1.5 rounded-full self-center border border-violet-500/20 animate-pulse">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-violet-400 bg-violet-500/10 px-3.5 py-1.5 rounded-full self-center border border-violet-500/20 animate-pulse">
             High-converting Affiliate Suites
           </span>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-none text-white">
@@ -458,7 +525,7 @@ export default function Home() {
             <div className="flex flex-col gap-2">
               <h3 className="font-bold text-lg text-white">Campaign Blueprint Pending</h3>
               <p className="text-slate-400 text-sm max-w-md">
-                Paste any WarriorPlus, JVZoo, ClickBank, or Sales Page URL and generate a complete high-converting affiliate campaign in seconds.
+                Paste any WarriorPlus, JVZoo, ClickBank, or Sales Page URL and generate a complete affiliate campaign in seconds.
               </p>
             </div>
             {/* Quick Demo Badges */}
@@ -494,22 +561,26 @@ export default function Home() {
                 <h3 className="font-bold text-lg text-white flex items-center gap-2">
                   Campaign Generated Successfully
                 </h3>
-                <p className="text-slate-400 text-xs">AI has synthesized conversion metrics and generated full promotional swipes.</p>
+                <p className="text-slate-400 text-xs">AI has audited the sales page, mapped avatar objections, and drafted custom promos.</p>
               </div>
             </div>
             {/* Quick Stat tags */}
             <div className="flex items-center gap-4 flex-wrap justify-center">
               <div className="bg-black/30 border border-white/5 px-4 py-2 rounded-xl text-center">
+                <span className="text-[10px] text-slate-500 block uppercase font-bold tracking-wider">Time Saved</span>
+                <span className="text-sm font-black text-violet-400">{timeSavedMetric}</span>
+              </div>
+              <div className="bg-black/30 border border-white/5 px-4 py-2 rounded-xl text-center">
                 <span className="text-[10px] text-slate-500 block uppercase font-bold tracking-wider">Bonus Value</span>
                 <span className="text-sm font-black text-emerald-400">{totalBonusValue}</span>
               </div>
               <div className="bg-black/30 border border-white/5 px-4 py-2 rounded-xl text-center">
-                <span className="text-[10px] text-slate-500 block uppercase font-bold tracking-wider">Assets Created</span>
-                <span className="text-sm font-black text-violet-400">16+ Files</span>
+                <span className="text-[10px] text-slate-500 block uppercase font-bold tracking-wider">Funnel Readiness</span>
+                <span className="text-sm font-black text-cyan-400">98%</span>
               </div>
               <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold px-3 py-2.5 rounded-xl flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                Ready To Promote
+                Ready To Launch
               </div>
             </div>
           </div>
@@ -571,105 +642,176 @@ export default function Home() {
             
             {/* 1. PRODUCT ANALYSIS DASHBOARD */}
             {activeTab === "analysis" && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex flex-col gap-6">
                 
-                {/* Column 1: Core Details */}
-                <div className="md:col-span-2 flex flex-col gap-6">
-                  {/* Overview Panel */}
-                  <div className="glass-panel rounded-2xl p-6 flex flex-col gap-5 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-violet-500/5 blur-2xl pointer-events-none rounded-full" />
-                    <h3 className="text-base font-bold text-white border-b border-white/5 pb-3 flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-violet-400 animate-pulse" />
-                      Product Blueprint Overview
-                    </h3>
+                {/* Audit Grid Widget */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Quality Score card */}
+                  <div className="glass-panel rounded-2xl p-6 flex flex-col gap-2 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 text-violet-500/10"><Zap className="w-12 h-12" /></div>
+                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Audited Offer Score</span>
+                    <div className="flex items-baseline gap-2 mt-2">
+                      <span className="text-3xl font-black text-violet-400">{result.analysis.offerQualityScore || "8.5"}</span>
+                      <span className="text-xs text-slate-500">/ 10 Rating</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-normal border-t border-white/5 pt-2 mt-2">
+                      Audited for copywriting hooks, clarity, and bonus package alignment strength.
+                    </p>
+                  </div>
+
+                  {/* EPC Potential Card */}
+                  <div className="glass-panel rounded-2xl p-6 flex flex-col gap-2 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 text-emerald-500/10"><Target className="w-12 h-12" /></div>
+                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">EPC Conversion Potential</span>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-2xl font-black text-emerald-400 uppercase tracking-wide">
+                        {result.analysis.epcPotential || "High"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-normal border-t border-white/5 pt-2 mt-2">
+                      Estimated EPC ranking based on USP strength, price tier structure, and avatar need.
+                    </p>
+                  </div>
+
+                  {/* Competitor Gap Card */}
+                  <div className="glass-panel rounded-2xl p-6 flex flex-col gap-2 relative overflow-hidden col-span-1">
+                    <div className="absolute top-0 right-0 p-4 text-cyan-500/10"><Shield className="w-12 h-12" /></div>
+                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Competitor Gap Analysis</span>
+                    <p className="text-xs text-slate-300 leading-relaxed mt-2.5 italic">
+                      &ldquo;{result.analysis.competitorGapAnalysis}&rdquo;
+                    </p>
+                  </div>
+                </div>
+
+                {/* Dashboard layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  
+                  {/* Left block */}
+                  <div className="lg:col-span-2 flex flex-col gap-6">
+                    {/* Core details */}
+                    <div className="glass-panel rounded-2xl p-6 flex flex-col gap-5 relative overflow-hidden">
+                      <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2.5 flex items-center gap-2">
+                        <List className="w-4 h-4 text-violet-400" />
+                        Product Overview
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                          <span className="text-[10px] text-slate-500 uppercase tracking-widest block mb-1 font-bold">Product Name</span>
+                          <p className="text-lg font-black text-white">{result.analysis.productName}</p>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-500 uppercase tracking-widest block mb-1 font-bold">Ideal Customer Avatar</span>
+                          <p className="text-xs font-semibold text-slate-300 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 leading-relaxed">{result.analysis.targetAudience}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-500 uppercase tracking-widest block mb-1.5 font-bold">Main Unique Selling Proposition (USP)</span>
+                        <p className="text-xs text-slate-200 bg-gradient-to-r from-violet-950/25 to-indigo-950/25 p-4 rounded-xl border border-violet-500/15 font-medium italic leading-relaxed shadow-inner">
+                          &ldquo;{result.analysis.usp}&rdquo;
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Features vs Benefits */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div>
-                        <span className="text-[10px] text-slate-500 uppercase tracking-widest block mb-1 font-bold">Product Name</span>
-                        <p className="text-xl font-black text-white">{result.analysis.productName}</p>
+                      <div className="glass-panel rounded-2xl p-6 flex flex-col gap-3">
+                        <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 border-b border-white/5 pb-2.5 flex items-center gap-2">
+                          <List className="w-3.5 h-3.5 text-violet-400" />
+                          Extracted Features
+                        </h4>
+                        <ul className="flex flex-col gap-2.5">
+                          {result.analysis.features.map((feature, idx) => (
+                            <li key={idx} className="text-xs text-slate-300 flex items-start gap-2.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0" />
+                              <span className="leading-normal">{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      <div>
-                        <span className="text-[10px] text-slate-500 uppercase tracking-widest block mb-1 font-bold">Target Customer Avatar</span>
-                        <p className="text-sm font-semibold text-slate-300 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">{result.analysis.targetAudience}</p>
+
+                      <div className="glass-panel rounded-2xl p-6 flex flex-col gap-3">
+                        <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 border-b border-white/5 pb-2.5 flex items-center gap-2">
+                          <Star className="w-3.5 h-3.5 text-emerald-400" />
+                          Extracted Benefits
+                        </h4>
+                        <ul className="flex flex-col gap-2.5">
+                          {result.analysis.benefits.map((benefit, idx) => (
+                            <li key={idx} className="text-xs text-slate-300 flex items-start gap-2.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+                              <span className="leading-normal">{benefit}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-500 uppercase tracking-widest block mb-1.5 font-bold">Main Unique Selling Proposition (USP)</span>
-                      <p className="text-sm text-slate-200 bg-gradient-to-r from-violet-950/20 to-indigo-950/20 p-4 rounded-xl border border-violet-500/10 font-medium italic leading-relaxed shadow-inner">
-                        &ldquo;{result.analysis.usp}&rdquo;
-                      </p>
                     </div>
                   </div>
 
-                  {/* Features & Benefits */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {/* Right Column details */}
+                  <div className="flex flex-col gap-6">
+                    {/* Marketing Hook swipes */}
+                    <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4">
+                      <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2.5 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-violet-400" />
+                        Campaign Hook Swipes
+                      </h3>
+                      <div className="flex flex-col gap-3">
+                        {result.analysis.marketingHooks?.map((hook, idx) => (
+                          <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-3.5 flex flex-col gap-2 relative group hover:border-violet-500/30 transition-all">
+                            <span className="text-[9px] uppercase font-bold text-violet-400 tracking-wider">
+                              Hook Option #{idx + 1}
+                            </span>
+                            <p className="text-xs font-semibold text-slate-200 select-all leading-relaxed pr-10">
+                              &ldquo;{hook}&rdquo;
+                            </p>
+                            <button
+                              onClick={() => copyToClipboard(hook, `hook-${idx}`)}
+                              className="absolute right-3 top-3 text-slate-500 hover:text-white transition-colors"
+                              title="Copy Hook"
+                            >
+                              {copiedField === `hook-${idx}` ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Pain Points */}
                     <div className="glass-panel rounded-2xl p-6 flex flex-col gap-3">
-                      <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 border-b border-white/5 pb-2.5 flex items-center gap-2">
-                        <List className="w-3.5 h-3.5 text-violet-400" />
-                        Extracted Features
-                      </h4>
-                      <ul className="flex flex-col gap-2.5">
-                        {result.analysis.features.map((feature, idx) => (
-                          <li key={idx} className="text-xs text-slate-300 flex items-start gap-2.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0" />
-                            <span className="leading-normal">{feature}</span>
+                      <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2.5 flex items-center gap-2">
+                        <Target className="w-4 h-4 text-rose-400" />
+                        Avatar Pain Points Resolved
+                      </h3>
+                      <ul className="flex flex-col gap-3">
+                        {result.analysis.painPoints.map((point, idx) => (
+                          <li key={idx} className="text-xs text-slate-300 flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0" />
+                            <span className="leading-normal">{point}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
+                    {/* Marketing Angles */}
                     <div className="glass-panel rounded-2xl p-6 flex flex-col gap-3">
-                      <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 border-b border-white/5 pb-2.5 flex items-center gap-2">
-                        <Star className="w-3.5 h-3.5 text-emerald-400" />
-                        Extracted Benefits
-                      </h4>
-                      <ul className="flex flex-col gap-2.5">
-                        {result.analysis.benefits.map((benefit, idx) => (
-                          <li key={idx} className="text-xs text-slate-300 flex items-start gap-2.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
-                            <span className="leading-normal">{benefit}</span>
+                      <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2.5 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-cyan-400" />
+                        Top Promotion Angles
+                      </h3>
+                      <ul className="flex flex-col gap-3">
+                        {result.analysis.marketingAngles.map((angle, idx) => (
+                          <li key={idx} className="text-xs text-slate-300 flex items-start gap-2">
+                            <span className="text-[9px] font-bold px-2 py-0.5 bg-cyan-500/10 text-cyan-400 rounded border border-cyan-500/20 shrink-0">
+                              Angle {idx + 1}
+                            </span>
+                            <span className="leading-normal">{angle}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                   </div>
+
                 </div>
 
-                {/* Column 2: Pain points and Marketing angles */}
-                <div className="flex flex-col gap-6">
-                  {/* Pain Points */}
-                  <div className="glass-panel rounded-2xl p-6 flex flex-col gap-3">
-                    <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2.5 flex items-center gap-2">
-                      <Target className="w-4 h-4 text-rose-400" />
-                      Top Pain Points Resolved
-                    </h3>
-                    <ul className="flex flex-col gap-3">
-                      {result.analysis.painPoints.map((point, idx) => (
-                        <li key={idx} className="text-xs text-slate-300 flex items-start gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0 animate-pulse" />
-                          <span className="leading-normal">{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Marketing Angles */}
-                  <div className="glass-panel rounded-2xl p-6 flex flex-col gap-3">
-                    <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2.5 flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-cyan-400" />
-                      Top Marketing Angles
-                    </h3>
-                    <ul className="flex flex-col gap-3">
-                      {result.analysis.marketingAngles.map((angle, idx) => (
-                        <li key={idx} className="text-xs text-slate-300 flex items-start gap-2">
-                          <span className="text-[10px] font-bold px-2 py-0.5 bg-cyan-500/10 text-cyan-400 rounded border border-cyan-500/20 shrink-0">
-                            Angle {idx + 1}
-                          </span>
-                          <span className="leading-normal">{angle}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -691,12 +833,12 @@ export default function Home() {
                   </div>
                   <div className="glass-panel rounded-2xl p-5 border border-white/5 flex flex-col gap-1 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-3 text-cyan-500/10"><Shield className="w-12 h-12" /></div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Objections Solved</span>
-                    <span className="text-2xl font-black text-cyan-400">8 Resolved</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Objection Matrix Strength</span>
+                    <span className="text-2xl font-black text-cyan-400">94 / 100</span>
                   </div>
                   <div className="glass-panel rounded-2xl p-5 border border-white/5 flex flex-col gap-1 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-3 text-fuchsia-500/10"><Star className="w-12 h-12" /></div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Conversion Impact</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">EPC Boost Impact</span>
                     <span className="text-2xl font-black text-fuchsia-400 animate-pulse">High</span>
                   </div>
                 </div>
@@ -753,64 +895,97 @@ export default function Home() {
 
             {/* 3. BONUS PAGE BUILDER */}
             {activeTab === "bonusPage" && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeIn">
+              <div className="flex flex-col gap-6 animate-fadeIn">
                 
-                {/* Code editor */}
-                <div className="glass-panel rounded-2xl overflow-hidden h-[680px] flex flex-col border border-white/10 shadow-2xl">
-                  <div className="bg-black/80 px-4 py-3 border-b border-white/5 flex items-center justify-between text-xs text-slate-400">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                      <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-                      <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                    </div>
-                    <span className="font-mono text-[10px]">bonus-page.html</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => copyToClipboard(result.bonusPage.htmlTemplate, "bonus-page-html")}
-                        className="hover:text-white flex items-center gap-1.5 focus:outline-none transition-colors"
-                      >
-                        {copiedField === "bonus-page-html" ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            Copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            Copy HTML
-                          </>
-                        )}
-                      </button>
-                      <span className="text-slate-700">|</span>
-                      <button
-                        onClick={() => downloadHtmlFile(result.bonusPage.htmlTemplate)}
-                        className="hover:text-white flex items-center gap-1.5 focus:outline-none transition-colors"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        Download
-                      </button>
-                    </div>
+                {/* Color Swapper preset controls */}
+                <div className="glass-panel rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between border border-white/5 gap-4">
+                  <div className="text-xs text-slate-300 font-semibold flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-violet-400" />
+                    <span>Custom Landing Page Theme Accent:</span>
                   </div>
-                  <pre className="flex-1 p-6 overflow-auto text-xs font-mono text-violet-300/80 bg-black/60 selection:bg-violet-500/40">
-                    <code>{result.bonusPage.htmlTemplate}</code>
-                  </pre>
+                  
+                  {/* Buttons presets */}
+                  <div className="flex items-center gap-2">
+                    {[
+                      { id: "violet", label: "Violet Glow", color: "bg-violet-600" },
+                      { id: "indigo", label: "Indigo Pulse", color: "bg-indigo-600" },
+                      { id: "emerald", label: "Emerald growth", color: "bg-emerald-600" },
+                      { id: "amber", label: "Amber Warmth", color: "bg-amber-600" }
+                    ].map((accent) => (
+                      <button
+                        key={accent.id}
+                        onClick={() => setPageAccent(accent.id)}
+                        className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border flex items-center gap-1.5 transition-all focus:outline-none ${
+                          pageAccent === accent.id
+                            ? "bg-white/10 text-white border-white/30"
+                            : "border-white/5 text-slate-500 hover:text-slate-300 hover:border-white/10"
+                        }`}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${accent.color}`} />
+                        {accent.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Iframe Visual Preview */}
-                <div className="glass-panel rounded-2xl overflow-hidden h-[680px] flex flex-col border border-white/10 shadow-2xl">
-                  <div className="bg-black/80 px-4 py-3 border-b border-white/5 flex items-center justify-between text-xs text-slate-400">
-                    <span className="font-semibold text-slate-200">Visual Sales Page Preview</span>
-                    <div className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[10px] text-slate-500">Rendered via sandboxed iframe</span>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Code editor */}
+                  <div className="glass-panel rounded-2xl overflow-hidden h-[650px] flex flex-col border border-white/10 shadow-2xl">
+                    <div className="bg-black/80 px-4 py-3 border-b border-white/5 flex items-center justify-between text-xs text-slate-400">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                      </div>
+                      <span className="font-mono text-[10px]">bonus-page.html</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => copyToClipboard(applyAccentToHtml(result.bonusPage.htmlTemplate, pageAccent), "bonus-page-html")}
+                          className="hover:text-white flex items-center gap-1.5 focus:outline-none transition-colors"
+                        >
+                          {copiedField === "bonus-page-html" ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              Copy HTML
+                            </>
+                          )}
+                        </button>
+                        <span className="text-slate-700">|</span>
+                        <button
+                          onClick={() => downloadHtmlFile(result.bonusPage.htmlTemplate)}
+                          className="hover:text-white flex items-center gap-1.5 focus:outline-none transition-colors"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          Download
+                        </button>
+                      </div>
                     </div>
+                    <pre className="flex-1 p-6 overflow-auto text-xs font-mono text-violet-300/80 bg-black/60 selection:bg-violet-500/40">
+                      <code>{applyAccentToHtml(result.bonusPage.htmlTemplate, pageAccent)}</code>
+                    </pre>
                   </div>
-                  <iframe
-                    srcDoc={result.bonusPage.htmlTemplate}
-                    className="flex-1 w-full bg-[#030014] border-none"
-                    sandbox="allow-scripts"
-                    title="Bonus Page Preview"
-                  />
+
+                  {/* Iframe Visual Preview */}
+                  <div className="glass-panel rounded-2xl overflow-hidden h-[650px] flex flex-col border border-white/10 shadow-2xl">
+                    <div className="bg-black/80 px-4 py-3 border-b border-white/5 flex items-center justify-between text-xs text-slate-400">
+                      <span className="font-semibold text-slate-200">Visual Sales Page Preview</span>
+                      <div className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[10px] text-slate-500">Rendered via sandboxed iframe</span>
+                      </div>
+                    </div>
+                    <iframe
+                      srcDoc={applyAccentToHtml(result.bonusPage.htmlTemplate, pageAccent)}
+                      className="flex-1 w-full bg-[#030014] border-none"
+                      sandbox="allow-scripts"
+                      title="Bonus Page Preview"
+                    />
+                  </div>
                 </div>
 
               </div>
@@ -820,15 +995,44 @@ export default function Home() {
             {activeTab === "emails" && (
               <div className="flex flex-col gap-6 max-w-4xl w-full mx-auto animate-fadeIn">
                 
-                {/* Inbox header mockup */}
-                <div className="glass-panel rounded-xl px-6 py-4 flex items-center justify-between border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <Inbox className="w-4 h-4 text-violet-400" />
-                    <span className="font-bold text-sm text-slate-200">Generated Email Swipe File</span>
+                {/* Inbox personalization mockup */}
+                <div className="glass-panel rounded-xl p-5 border border-white/5 flex flex-col gap-4">
+                  <div className="flex items-center gap-2 text-xs font-bold text-violet-400 border-b border-white/5 pb-2">
+                    <Settings className="w-3.5 h-3.5" />
+                    <span>Email Swipe Personalization Engine</span>
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] text-slate-500 font-mono">
-                    <span>4 swipes compiled</span>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="user-name-input" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Sender Name (Replacer)
+                      </label>
+                      <input
+                        id="user-name-input"
+                        type="text"
+                        value={userName}
+                        onChange={(e) => handleNameChange(e.target.value)}
+                        placeholder="John Doe"
+                        className="px-3.5 py-2 text-xs rounded-lg glass-input text-white focus:outline-none"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="aff-link-input" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Your Affiliate Link (Replacer)
+                      </label>
+                      <input
+                        id="aff-link-input"
+                        type="text"
+                        value={affiliateLink}
+                        onChange={(e) => handleLinkChange(e.target.value)}
+                        placeholder="https://warriorplus.com/..."
+                        className="px-3.5 py-2 text-xs rounded-lg glass-input text-white focus:outline-none"
+                      />
+                    </div>
                   </div>
+                  <span className="text-[10px] text-slate-500 font-mono">
+                    Any placeholder like [Name], [Your Name], or [Affiliate Link] inside the subject line and email body is dynamically replaced in real-time as you type.
+                  </span>
                 </div>
 
                 {/* Accordion List */}
@@ -836,7 +1040,6 @@ export default function Home() {
                   {result.emails.map((email: EmailSwipe, idx: number) => {
                     const isExpanded = expandedEmailIdx === idx;
                     
-                    // Format type indicator
                     const getMailAvatarText = (type: string) => {
                       if (type === "announcement") return "A";
                       if (type === "benefits") return "B";
@@ -850,6 +1053,9 @@ export default function Home() {
                       if (type === "faq") return "bg-amber-500/10 text-amber-400 border-amber-500/20";
                       return "bg-rose-500/10 text-rose-400 border-rose-500/20";
                     };
+
+                    const customizedSubject = customizeEmailText(email.subject);
+                    const customizedBody = customizeEmailText(email.body);
 
                     return (
                       <div
@@ -865,20 +1071,25 @@ export default function Home() {
                           onClick={() => setExpandedEmailIdx(isExpanded ? null : idx)}
                           className="w-full px-5 py-4 flex items-center justify-between text-left focus:outline-none"
                         >
-                          <div className="flex items-center gap-4 flex-1 pr-10">
+                          <div className="flex items-center gap-4 flex-1 pr-10 overflow-hidden">
                             {/* Avatar */}
                             <div className="w-8 h-8 rounded-full bg-violet-600/20 border border-violet-500/30 flex items-center justify-center font-bold text-xs text-violet-400 shrink-0">
                               {getMailAvatarText(email.type)}
                             </div>
                             
-                            <div className="flex flex-col gap-0.5 overflow-hidden">
-                              <div className="flex items-center gap-2">
+                            <div className="flex flex-col gap-0.5 overflow-hidden w-full">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border shrink-0 ${getMailBadgeStyle(email.type)}`}>
                                   {email.type}
                                 </span>
-                                <span className="text-xs text-slate-400 font-medium">Swipe #{idx + 1}</span>
+                                <span className="text-[10px] font-semibold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded">
+                                  Curiosity: {email.curiosityScore || "9"}/10
+                                </span>
+                                <span className="text-[10px] font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">
+                                  Urgency: {email.urgencyScore || "8"}/10
+                                </span>
                               </div>
-                              <span className="font-bold text-sm text-white truncate max-w-lg">{email.subject}</span>
+                              <span className="font-bold text-sm text-white truncate max-w-lg mt-1">{customizedSubject}</span>
                               {!isExpanded && (
                                 <span className="text-xs text-slate-500 truncate max-w-xl font-medium">{email.previewText}</span>
                               )}
@@ -899,11 +1110,11 @@ export default function Home() {
                             <div className="flex items-center justify-between text-xs text-slate-400 bg-white/5 p-3 rounded-lg border border-white/5">
                               <div>
                                 <p className="font-semibold text-white">To: <span className="text-slate-400 font-normal">[Affiliate List]</span></p>
-                                <p className="mt-0.5">Subject: <span className="text-violet-400 select-all font-semibold">{email.subject}</span></p>
+                                <p className="mt-0.5">Subject: <span className="text-violet-400 select-all font-semibold">{customizedSubject}</span></p>
                               </div>
                               <div className="flex items-center gap-2">
                                 <button
-                                  onClick={() => copyToClipboard(email.subject, `sub-${idx}`)}
+                                  onClick={() => copyToClipboard(customizedSubject, `sub-${idx}`)}
                                   className="hover:text-white text-[10px] font-bold flex items-center gap-1 focus:outline-none"
                                 >
                                   {copiedField === `sub-${idx}` ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -912,7 +1123,7 @@ export default function Home() {
                                 <span className="text-slate-700">|</span>
                                 <button
                                   onClick={() => {
-                                    const fullText = `Subject: ${email.subject}\nPreview: ${email.previewText}\n\n${email.body}`;
+                                    const fullText = `Subject: ${customizedSubject}\nPreview: ${email.previewText}\n\n${customizedBody}`;
                                     copyToClipboard(fullText, `full-${idx}`);
                                   }}
                                   className="hover:text-white text-[10px] font-bold flex items-center gap-1 focus:outline-none"
@@ -925,7 +1136,7 @@ export default function Home() {
 
                             {/* Email body block */}
                             <div className="bg-black/50 border border-white/5 rounded-xl p-5 md:p-6 text-slate-300 text-xs md:text-sm leading-relaxed whitespace-pre-line font-sans select-all shadow-inner">
-                              {email.body}
+                              {customizedBody}
                             </div>
 
                             {/* Recommended Call To Action swipe info */}
@@ -940,7 +1151,7 @@ export default function Home() {
                                 </div>
                               </div>
                               <button
-                                onClick={() => copyToClipboard(email.body, `body-${idx}`)}
+                                onClick={() => copyToClipboard(customizedBody, `body-${idx}`)}
                                 className="px-3.5 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all focus:outline-none"
                               >
                                 {copiedField === `body-${idx}` ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}

@@ -173,6 +173,10 @@ function isValidApiResponse(json: any): json is ApiResponse {
   if (!Array.isArray(analysis.painPoints)) return false;
   if (typeof analysis.usp !== 'string') return false;
   if (!Array.isArray(analysis.marketingAngles)) return false;
+  if (typeof analysis.offerQualityScore !== 'number') return false;
+  if (typeof analysis.epcPotential !== 'string') return false;
+  if (typeof analysis.competitorGapAnalysis !== 'string') return false;
+  if (!Array.isArray(analysis.marketingHooks)) return false;
   
   if (!Array.isArray(bonuses)) return false;
   // Ensure we have at least some bonuses (target 10, but let's be flexible to not fail if we get 8-10, though prompt asks for 10)
@@ -199,6 +203,9 @@ function isValidApiResponse(json: any): json is ApiResponse {
   if (emails.length === 0) return false;
   for (const e of emails) {
     if (typeof e.type !== 'string' || typeof e.subject !== 'string' || typeof e.previewText !== 'string' || typeof e.body !== 'string' || typeof e.ctaText !== 'string') {
+      return false;
+    }
+    if (typeof e.curiosityScore !== 'number' || typeof e.urgencyScore !== 'number') {
       return false;
     }
   }
@@ -331,7 +338,11 @@ JSON Schema:
     "benefits": ["Benefit 1", "Benefit 2", "Benefit 3", "Benefit 4", "Benefit 5"],
     "painPoints": ["Pain point 1 resolved", "Pain point 2 resolved", "Pain point 3 resolved"],
     "usp": "Unique Selling Proposition",
-    "marketingAngles": ["Angle 1", "Angle 2", "Angle 3"]
+    "marketingAngles": ["Angle 1", "Angle 2", "Angle 3"],
+    "offerQualityScore": 8.5,
+    "epcPotential": "High",
+    "competitorGapAnalysis": "A short, strategic paragraph outlining how this specific bonus stack fills a critical gap left by competitors promoting the same product",
+    "marketingHooks": ["Hook 1 (e.g. curiosity style)", "Hook 2 (e.g. statistics style)", "Hook 3 (e.g. benefit style)"]
   },
   "bonuses": [
     {
@@ -359,7 +370,9 @@ JSON Schema:
       "subject": "Announcement email subject line",
       "previewText": "Email teaser preview text",
       "body": "Email body copy. Use placeholders like [Name] and [Affiliate Link].",
-      "ctaText": "Secure Your Copy + Bonuses Here"
+      "ctaText": "Secure Your Copy + Bonuses Here",
+      "curiosityScore": 9,
+      "urgencyScore": 7
     }
   ]
 }

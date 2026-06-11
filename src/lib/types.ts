@@ -6,6 +6,10 @@ export interface ProductAnalysis {
   painPoints: string[];
   usp: string;
   marketingAngles: string[];
+  offerQualityScore: number;
+  epcPotential: 'High' | 'Medium' | 'Low' | string;
+  competitorGapAnalysis: string;
+  marketingHooks: string[];
 }
 
 export interface BonusIdea {
@@ -34,6 +38,8 @@ export interface EmailSwipe {
   previewText: string;
   body: string;
   ctaText: string;
+  curiosityScore: number;
+  urgencyScore: number;
 }
 
 export interface ApiResponse {
